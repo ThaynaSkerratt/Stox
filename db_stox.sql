@@ -1,6 +1,6 @@
-create database if not exists db_stox;
+create database if not exists db_stoxx;
 
-use db_stox;
+use db_stoxx;
 
 create table if not exists tb_produto_secao(
 	cd_produto_secao int auto_increment primary key,
@@ -61,8 +61,8 @@ create table if not exists tb_log_movimentacao(
     vl_qtd int not null,
     id_lote int not null,
     id_funcionario int not null,
-
-    foreign key(id_lote) references tb_lote(cd_lote)
+    
+    foreign key(id_lote) references tb_lote(cd_lote),
     foreign key(id_funcionario) references tb_funcionario(cd_funcionario)
 );
 
@@ -79,17 +79,19 @@ create table if not exists tb_log_venda(
     vl_troco decimal(5,2) not null,
     id_funcionario int not null,
     id_metodo_pagamento int not null,
-
+    
     foreign key(id_funcionario) references tb_funcionario(cd_funcionario),
     foreign key(id_metodo_pagamento) references tb_metodo_pagamento(cd_metodo_pagamento)
 );
 
 create table if not exists tb_venda_itens(
 	cd_venda_item int auto_increment primary key,
-    id_venda int not null,
+    id_log_venda int not null,
     id_tipo_produto int not null,
     nr_qtd int not null,
-
+    
     foreign key(id_log_venda) references tb_log_venda(cd_log_venda),
     foreign key(id_tipo_produto) references tb_tipo_produto(cd_tipo_produto)
 );
+
+	
