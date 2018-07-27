@@ -18,7 +18,7 @@ create table if not exists tb_tipo_produto(
 
 create table if not exists tb_prateleira(
 	cd_prateleira int auto_increment primary key,
-    id_cod_barras int not null,
+    id_cod_barras varchar(45) not null,
     int_qtd int not null,
     foreign key(id_cod_barras) references tb_tipo_produto(cod_barras)
 );
@@ -31,7 +31,7 @@ create table if not exists tb_fornecedor(
 
 create table if not exists tb_lote(
 	cd_lote int auto_increment primary key,
-    id_cod_barras int not null,
+    id_cod_barras varchar(45) not null,
     int_qtd int not null,
     dt_fabricacao date not null,
     dt_validade date not null,
@@ -41,7 +41,7 @@ create table if not exists tb_lote(
 );
 
 create table if not exists tb_cargo(
-	cd_cardo int auto_increment primary key,
+	cd_cargo int auto_increment primary key,
     nm_cargo varchar(30) not null
 );
 
@@ -62,7 +62,7 @@ create table if not exists tb_log_movimentacao(
     id_lote int not null,
     id_funcionario int not null,
 
-    foreign key(id_lote) references tb_lote(cd_lote)
+    foreign key(id_lote) references tb_lote(cd_lote),
     foreign key(id_funcionario) references tb_funcionario(cd_funcionario)
 );
 
@@ -73,6 +73,10 @@ create table if not exists tb_produto(
     foreign key(id_lote) references tb_lote(cd_lote)
 );
 
+create table if not exists tb_metodo_pagamento(
+    cd_metodo_pagamento int auto_increment primary key,
+    nm_metodo_pagamento varchar(25) not null
+);
 create table if not exists tb_log_venda(
 	cd_log_venda int auto_increment primary key,
     vl_total decimal(5,2) not null,
@@ -86,10 +90,10 @@ create table if not exists tb_log_venda(
 
 create table if not exists tb_venda_itens(
 	cd_venda_item int auto_increment primary key,
-    id_venda int not null,
-    id_tipo_produto int not null,
+    id_log_venda int not null,
+    id_tipo_produto varchar(45) not null,
     nr_qtd int not null,
 
     foreign key(id_log_venda) references tb_log_venda(cd_log_venda),
-    foreign key(id_tipo_produto) references tb_tipo_produto(cd_tipo_produto)
+    foreign key(id_tipo_produto) references tb_tipo_produto(cod_barras)
 );
