@@ -6,23 +6,53 @@ class Estocador
 	function __construct()
 	{
 		$this->conn = new PDO("mysql:server=localhost;dbname=db_stox", "root", "");
-		error_reporting(E_ALL);
-		ini_set('display_errors', 1);
+		$this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // Ativa os erros de SQL
+
+		define("ERR_BARCODE_NOT_FOUND", 001);
+		define("ERR_SUPPLIER_ID_NOT_FOUND", 002);
+		define("ERR_SQL", 003);
 	}
 
 	// ---------- Essas são funções de rotina, executadas sem interação direta do usuário ---------- 
-
-	private function getProductBarcode($name)
+	private function getCodbarrasProduto($name)
 	{
-		$query = $this->pdo->prepare("SELECT cd_cod_barras FROM tb_produto WHERE nm_produto = :nome");
-		$query->bindValue(":nome", $name);
-		$query->execute();
 
-		if($query->numRows() >= 1)
+		$query = $this->conn->prepare("SELECT cod_barras FROM tb_tipo_produto WHERE nm_tipo_produto = :nome");
+		$query->bindValue(":nome", $name);
+
+		try
+		{ 
+			$query->execute(); 
+		}
+		catch(PDOException $e) { return ERR_SQL; }
+
+		if($query->rowCount() >= 1)
+		{
+			$result = $query->fetchAll()
+			return $result[0]
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	private function getIdFornecedor($name)
+	{
+		$query = $this->conn->prepare("SELECT cd_fornecedor FROM tb_fornecedor WHERE nm_fornecedor = :name");
+		$query->bindValue(":name", $name);
+		
+		try
+		{ 
+			$query->execute(); 
+		}
+		catch(PDOException $e) { return ERR_SQL; }
+
+		if($query->rowCount() >= 1)
 		{
 			while($row = $query->fetch(PDO::FETCH_ASSOC))
 			{
-				return row['cd_cod_barras'];
+				return $row['cd_fornecedor'];
 			}
 		}
 		else
@@ -36,39 +66,59 @@ class Estocador
 	/////////////////////////////////////////////////
 	// ---------- Essas são funções do lote ---------- 
 	
-	public function receiveBatch($name, $qt, $val, $supp)
+	public function receberLote($name, $qt, $val, $supp) // Usa o nome do produto e do fornecedor pra encontrar os ids
 	{
-		$query = $this->pdo->prepare("INSERT INTO tb_lote VALUES (NULL, :cod, :qtd, :validade, :fornecedor)");
-		$query->bindValue(':cod', $this->getProductBarcode());
+		// Caso não encontre o código de barras, retorna um erro
+		$barcode = $this->getCodbarrasProduto($name);
+		if( !$barcode ) 
+			return ERR_BARCODE_NOT_FOUND;
+		else if ( $barcode == ERR_SQL )
+			return ERR_SQL;
+
+		// Caso não encontre o ID do fornecedor, retorna um erro
+		$idSupp = $this->getIdFornecedor($supp); 
+		if( !$idSupp ) 
+			return ERR_SUPPLIER_ID_NOT_FOUND;
+		else if ( $idSupp == ERR_SQL )
+			return ERR_SQL;
+
+		$query = $this->conn->prepare("INSERT INTO tb_lote VALUES (NULL, :cod, :qtd, :validade, :fornecedor)");
+		$query->bindValue(':cod', $barcode);
 		$query->bindValue(':qtd', $qt);
 		$query->bindValue(':validade', $val);
-		$query->bindValue(':fornecedor', $supp);
-		$query->execute();
+		$query->bindValue(':fornecedor', $idSupp);
+
+		try
+		{ 
+			$query->execute(); 
+		}
+		catch(PDOException $e) { return ERR_SQL; }
+		
 	}
 
-	public function changeBatch()
+	public function alterarLote()
 	{
-		$query = $this->pdo->prepare();
+		$query = $this->conn->prepare();
 	}
 
-	public function deleteBatch()
+	public function deletarLote()
 	{
-		$query = $this->pdo->prepare();
+		$query = $this->conn->prepare();
 	}
 
-	public function listBatches()
+	public function listarLotes()
 	{
-		$query = $this->pdo->prepare();
+		$query = $this->conn->prepare();
 	}
 
-	// ---------- Fim das funções do lote ---------- 
-	//////////////////////////////////////////////////
+	// ---------- Fim das funções do lote -----------
 	/////////////////////////////////////////////////
-	// ---------- Essas são funções dos produtos ---------- 
+	/////////////////////////////////////////////////
+	// ---------- Essas são funções dos produtos ----
 
-	public function moveProduct()
+	public function moverProduto()
 	{
-		$query = $this->pdo->prepare();
+		$query = $this->conn->prepare();
 	}
 	// ---------- Fim das funções sobre os produtos ---------- 
 }
