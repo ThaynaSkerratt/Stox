@@ -33,7 +33,6 @@ create table if not exists tb_lote(
 	cd_lote int auto_increment primary key,
     id_cod_barras varchar(45) not null,
     int_qtd int not null,
-    dt_fabricacao date not null,
     dt_validade date not null,
     id_fornecedor int not null,
     foreign key(id_cod_barras) references tb_tipo_produto(cod_barras),

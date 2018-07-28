@@ -10,9 +10,5 @@ function login($login, $pass)
 	$query->bindValue(":senha", $pass);
 	$query->execute();
 
-	$logged = ($query->rowCount() >= 1) ? 'dd' : 'false';
-	echo $logged;
-	return $logged;
+	return $query->rowCount() >= 1 ? true : false;
 }
-$var = login("login", "123");
-echo $var;
