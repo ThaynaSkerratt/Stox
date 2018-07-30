@@ -11,14 +11,15 @@ class Estocador
 		define("ERR_BARCODE_NOT_FOUND", 001);
 		define("ERR_SUPPLIER_ID_NOT_FOUND", 002);
 		define("ERR_SQL", 003);
+		define("ERR_NO_FIELDS", 004);
 	}
 
 	// ---------- Essas são funções de rotina, executadas sem interação direta do usuário ---------- 
-	private function getCodbarrasProduto($name)
+	private function vrfCodbarrasProduto($cod)
 	{
 
-		$query = $this->conn->prepare("SELECT cod_barras FROM tb_tipo_produto WHERE nm_tipo_produto = :nome");
-		$query->bindValue(":nome", $name);
+		$query = $this->conn->prepare("SELECT cod_barras FROM tb_tipo_produto WHERE cod_barras = :cod");
+		$query->bindValue(":cod", $cod);
 
 		try
 		{ 
@@ -28,8 +29,8 @@ class Estocador
 
 		if($query->rowCount() >= 1)
 		{
-			$result = $query->fetchAll()
-			return $result[0]
+			$result = $query->fetchAll();
+			return $result[0];
 		}
 		else
 		{
@@ -61,15 +62,31 @@ class Estocador
 		}
 	}
 
+	private function vrfCampos($post)
+	{	
+		$campos = ['cod_barras' => 0, 'qtd' => 0, 'validade' => 0, 'fornecedor' => 0];
+		$todosVazios = true;
+
+		foreach( $campos as $nome => $valor)
+		{
+			if( !empty($post[$nome]) )
+			{
+				$campos[$nome] = 1;
+				$todosVazios = false;
+			}
+		}
+		return $todosVazios ? $todosVazios : $campos;
+	}
+
 	// ---------- Fim das funções de rotina ---------- 
 	//////////////////////////////////////////////////
 	/////////////////////////////////////////////////
 	// ---------- Essas são funções do lote ---------- 
 	
-	public function receberLote($name, $qt, $val, $supp) // Usa o nome do produto e do fornecedor pra encontrar os ids
+	public function receberLote($cod, $qt, $val, $supp) // Usa o nome do produto e do fornecedor pra encontrar os ids
 	{
 		// Caso não encontre o código de barras, retorna um erro
-		$barcode = $this->getCodbarrasProduto($name);
+		$barcode = $this->vrfCodbarrasProduto($cod);
 		if( !$barcode ) 
 			return ERR_BARCODE_NOT_FOUND;
 		else if ( $barcode == ERR_SQL )
@@ -96,8 +113,12 @@ class Estocador
 		
 	}
 
-	public function alterarLote()
+	public function alterarLote($post)
 	{
+		$vrf = $vrfCampos($post);
+		if( !$vrf )
+			return ERR_NO_FIELDS;
+		
 		$query = $this->conn->prepare();
 	}
 
